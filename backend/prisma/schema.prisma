@@ -1,0 +1,272 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  firebaseUid String   @unique
+  email       String   @unique
+  phone       String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  profile     UserProfile?
+  kyc         KYC?
+  goldHolding GoldHolding?
+  transactions Transaction[]
+  goals       Goal[]
+  withdrawals Withdrawal[]
+  rewards     Reward[]
+  ledgerAccounts LedgerAccount[]
+  ledgerEntries LedgerEntry[]
+  rawSMS      RawSMS[]
+  processedSMS ProcessedSMS[]
+
+  @@index([firebaseUid])
+  @@index([email])
+  @@index([phone])
+}
+
+model UserProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  firstName String?
+  lastName  String?
+  dateOfBirth DateTime?
+  address   Json?
+  panNumber String?
+  aadhaarNumber String?
+  bankDetails Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model KYC {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  status        String   @default("PENDING")
+  documents     Json?
+  verificationData Json?
+  submittedAt   DateTime?
+  verifiedAt    DateTime?
+  rejectedAt    DateTime?
+  rejectionReason String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model GoldHolding {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  quantity   Decimal  @default(0) @db.Decimal(18, 6)
+  avgPrice   Decimal  @default(0) @db.Decimal(18, 2)
+  lastUpdated DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  userId        String
+  type          String
+  amount        Decimal  @db.Decimal(18, 2)
+  goldQuantity  Decimal? @db.Decimal(18, 6)
+  status        String   @default("PENDING")
+  providerRef   String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgerEntries LedgerEntry[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Goal {
+  id            String   @id @default(uuid())
+  userId        String
+  name          String
+  targetAmount  Decimal  @db.Decimal(18, 2)
+  currentAmount Decimal  @default(0) @db.Decimal(18, 2)
+  type          String
+  frequency     String?
+  status        String   @default("ACTIVE")
+  targetDate    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sips SIP[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model SIP {
+  id                String   @id @default(uuid())
+  goalId            String
+  amount            Decimal  @db.Decimal(18, 2)
+  frequency         String
+  nextExecutionDate DateTime
+  status            String   @default("ACTIVE")
+  lastExecutedAt    DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@index([status])
+  @@index([nextExecutionDate])
+}
+
+model Withdrawal {
+  id            String   @id @default(uuid())
+  userId        String
+  amount        Decimal  @db.Decimal(18, 2)
+  status        String   @default("PENDING")
+  paymentMethod String
+  bankDetails   Json?
+  transactionId String?
+  processedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Reward {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String
+  points      Decimal  @db.Decimal(18, 2)
+  description String?
+  status      String   @default("ACTIVE")
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+}
+
+model LedgerAccount {
+  id          String   @id @default(uuid())
+  userId      String
+  accountType String
+  balance     Decimal  @default(0) @db.Decimal(18, 2)
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debitEntries LedgerEntry[] @relation("DebitAccount")
+  creditEntries LedgerEntry[] @relation("CreditAccount")
+
+  @@unique([userId, accountType, name])
+  @@index([userId])
+  @@index([accountType])
+}
+
+model LedgerEntry {
+  id            String   @id @default(uuid())
+  userId        String
+  debitAccountId String
+  creditAccountId String
+  amount        Decimal  @db.Decimal(18, 2)
+  transactionId String?
+  description   String?
+  timestamp     DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  debitAccount LedgerAccount @relation("DebitAccount", fields: [debitAccountId], references: [id])
+  creditAccount LedgerAccount @relation("CreditAccount", fields: [creditAccountId], references: [id])
+
+  @@index([userId])
+  @@index([transactionId])
+  @@index([timestamp])
+  @@index([debitAccountId])
+  @@index([creditAccountId])
+}
+
+model RawSMS {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  rawText   String   @db.Text
+  timestamp DateTime
+  source    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, timestamp])
+  @@index([userId])
+  @@index([messageId])
+  @@index([timestamp])
+}
+
+model ProcessedSMS {
+  id          String   @id @default(uuid())
+  messageId   String
+  userId      String
+  rawText     String   @db.Text
+  parsedData  Json?
+  category    String?
+  confidence  Decimal? @db.Decimal(5, 2)
+  processedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@index([messageId])
+  @@index([category])
+  @@index([processedAt])
+}
+
+model SMSCategory {
+  id        String   @id @default(uuid())
+  category  String   @unique
+  patterns  Json?
+  rules     Json?
+  examples  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+

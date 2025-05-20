@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RawSMS {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  rawText   String   @db.Text
+  timestamp DateTime
+  source    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, userId, timestamp])
+  @@index([userId])
+  @@index([messageId])
+  @@index([timestamp])
+}
+
+model ProcessedSMS {
+  id          String   @id @default(uuid())
+  messageId   String
+  userId      String
+  rawText     String   @db.Text
+  parsedData  Json?
+  category    String?
+  confidence  Decimal? @db.Decimal(5, 2)
+  processedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@index([messageId])
+  @@index([category])
+  @@index([processedAt])
+}
+
+model SMSCategory {
+  id        String   @id @default(uuid())
+  category  String   @unique
+  patterns  Json?
+  rules     Json?
+  examples  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
