@@ -25,12 +25,12 @@ export class UpdateProfileDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  panNumber?: string;
+  nationalIdNumber?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  aadhaarNumber?: string;
+  kraPin?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

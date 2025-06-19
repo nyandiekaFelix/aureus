@@ -1,4 +1,4 @@
-# Fintech Platform
+# Aureus
 
 Production-ready backend for a consumer fintech-style mobile app with NestJS, PostgreSQL, RabbitMQ, and Redis.
 

@@ -39,8 +39,8 @@ model UserProfile {
   lastName  String?
   dateOfBirth DateTime?
   address   Json?
-  panNumber String?
-  aadhaarNumber String?
+  nationalIdNumber String?
+  kraPin String?
   bankDetails Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
