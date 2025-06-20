@@ -16,3 +16,4 @@ export class CreateWithdrawalDto {
   bankDetails?: any;
 }
 
+

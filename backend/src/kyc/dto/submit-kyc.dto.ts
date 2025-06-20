@@ -12,3 +12,4 @@ export class SubmitKycDto {
   verificationData?: any;
 }
 
+

@@ -7,3 +7,4 @@ export interface IPaymentGateway {
   getWithdrawalStatus(transactionId: string): Promise<{ status: string; details?: any }>;
 }
 
+

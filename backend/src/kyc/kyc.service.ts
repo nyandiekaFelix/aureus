@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+
 import { PrismaService } from '../common/prisma/prisma.service';
-import { RedisService } from '../common/redis/redis.service';
 import { RabbitMQService } from '../common/rabbitmq/rabbitmq.service';
+import { RedisService } from '../common/redis/redis.service';
 import { SubmitKycDto } from './dto/submit-kyc.dto';
 
 @Injectable()
@@ -13,7 +14,7 @@ export class KycService {
   ) {}
 
   async submitKyc(userId: string, submitKycDto: SubmitKycDto) {
-    const kyc = await this.prisma.kYC.upsert({
+    const kyc = await this.prisma.kyc.upsert({
       where: { userId },
       update: {
         status: 'PENDING',
@@ -47,7 +48,7 @@ export class KycService {
       return cached;
     }
 
-    const kyc = await this.prisma.kYC.findUnique({
+    const kyc = await this.prisma.kyc.findUnique({
       where: { userId },
     });
 
@@ -72,7 +73,7 @@ export class KycService {
       updateData.rejectionReason = rejectionReason;
     }
 
-    const kyc = await this.prisma.kYC.update({
+    const kyc = await this.prisma.kyc.update({
       where: { userId },
       data: updateData,
     });

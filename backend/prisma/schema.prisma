@@ -16,7 +16,7 @@ model User {
   updatedAt   DateTime @updatedAt
 
   profile     UserProfile?
-  kyc         KYC?
+  kyc         Kyc?
   goldHolding GoldHolding?
   transactions Transaction[]
   goals       Goal[]
@@ -50,7 +50,7 @@ model UserProfile {
   @@index([userId])
 }
 
-model KYC {
+model Kyc {
   id            String   @id @default(uuid())
   userId        String   @unique
   status        String   @default("PENDING")

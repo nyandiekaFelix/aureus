@@ -22,3 +22,4 @@ import { RabbitMQModule } from './common/rabbitmq/rabbitmq.module';
 })
 export class AppModule {}
 
+

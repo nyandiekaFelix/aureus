@@ -10,3 +10,4 @@ import { GoldProviderService } from './services/gold-provider.service';
 })
 export class GoldModule {}
 
+

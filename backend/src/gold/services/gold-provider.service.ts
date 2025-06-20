@@ -75,3 +75,4 @@ export class GoldProviderService implements IGoldProvider {
   }
 }
 
+

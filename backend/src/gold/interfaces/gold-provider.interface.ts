@@ -5,3 +5,4 @@ export interface IGoldProvider {
   getTransactionStatus(transactionId: string): Promise<{ status: string; details?: any }>;
 }
 
+
