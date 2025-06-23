@@ -29,7 +29,7 @@ Production-ready backend for a consumer fintech-style mobile app with NestJS, Po
 
 2. Copy environment variables:
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 3. Update `.env` with your Firebase credentials and other configuration
